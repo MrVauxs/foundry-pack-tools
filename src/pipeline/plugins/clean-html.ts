@@ -74,17 +74,31 @@ export function createCleanDescriptionHTMLPlugin(options: CleanHTMLOptions = {})
         name: "cleanDescriptionHTML",
         async transform(doc: PackEntry, _context: TransformContext) {
             const system = doc.system as Record<string, unknown> | undefined;
-            if (!system) return;
-            const description = system.description as Record<string, string | undefined> | undefined;
-            if (!description) return;
-            if (description.value) {
-                description.value = cleanHTML(description.value, doc.name);
+            if (system) {
+                const description = system.description as Record<string, string | undefined> | undefined;
+
+                // Expand on below as required...
+                if (description) {
+                    if (description.value) {
+                        description.value = cleanHTML(description.value, doc.name);
+                    }
+                    if (description.gm) {
+                        description.gm = cleanHTML(description.gm, doc.name);
+                    }
+                    if (description.chat) {
+                        description.chat = cleanHTML(description.chat, doc.name);
+                    }
+                    if (description.unidentified) {
+                        description.unidentified = cleanHTML(description.unidentified, doc.name);
+                    }
+                }
+                const details = system.details as Record<string, string | undefined> | undefined;
+                if (details?.publicNotes) {
+                    details.publicNotes = cleanHTML(details.publicNotes, doc.name);
+                }
             }
-            if (description.chat) {
-                description.chat = cleanHTML(description.chat, doc.name);
-            }
-            if (description.unidentified) {
-                description.unidentified = cleanHTML(description.unidentified, doc.name);
+            if (doc.content && typeof doc.content === "string") {
+                doc.content = cleanHTML(doc.content, doc.name);
             }
         },
     };

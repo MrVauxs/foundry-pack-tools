@@ -1,3 +1,4 @@
+import { PackToolsError } from "../error.js";
 import type { PackEntry, TransformContext } from "../types.js";
 
 export interface ConvertUUIDsToIdsOptions {
@@ -25,7 +26,8 @@ export function convertUUIDsToIds(
     idNameMap: Map<string, Map<string, string>>,
     options: ConvertUUIDsToIdsOptions = {},
 ): void {
-    const nameToIdMap = options.nameIdMap ?? buildNameToIdMap(idNameMap);
+    const { warnOnly = false, nameIdMap } = options;
+    const nameToIdMap = nameIdMap ?? buildNameToIdMap(idNameMap);
     const serialized = JSON.stringify(doc);
     const replaced = serialized.replace(UUID_NAME_PATTERN, (match, uuid) => {
         const nameMatch = COMPENDIUM_NAME_PATTERN.exec(uuid);
@@ -34,9 +36,23 @@ export function convertUUIDsToIds(
         const docName = nameMatch[3];
         if (!packId || !docName) return match;
         const packMap = nameToIdMap.get(packId);
-        if (!packMap) return match;
+        if (!packMap) {
+            if (!warnOnly) {
+                throw new PackToolsError(`Unknown compendium pack: ${packId}`);
+            } else {
+                console.warn(`Unknown compendium pack: ${packId}`);
+            }
+            return match;
+        }
         const id = packMap.get(docName.toLowerCase());
-        if (!id) return match;
+        if (!id) {
+            if (!warnOnly) {
+                throw new PackToolsError(`Unknown document name: ${docName} in pack ${packId}`);
+            } else {
+                console.warn(`Unknown document name: ${docName} in pack ${packId}`);
+            }
+            return match;
+        }
         return `${nameMatch[1]}.${nameMatch[2]}.${id}`;
     });
 

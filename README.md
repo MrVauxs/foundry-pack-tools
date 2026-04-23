@@ -64,9 +64,9 @@ const transform = createTransformEntry([
     // Remove default fields (sort, effects, _stats, null folder, default ownership)
     createPruneDefaultsPlugin({ normalizeOwnership: true }),
 
-    // Reject any compendium links to systems other than dnd5e
+    // Reject any compendium links to systems other than sf2e
     createValidateLinksPlugin({
-        allowedSystems: ["dnd5e"],
+        allowedSystems: ["sf2e"],
     }),
 ]);
 
@@ -154,10 +154,10 @@ import {
 import { extractPack } from "@foundryvtt/foundryvtt-cli";
 import { readFileSync } from "node:fs";
 
-const sourceManifest = JSON.parse(readFileSync("dnd5e/system.json", "utf-8"));
+const sourceManifest = JSON.parse(readFileSync("sf2e/system.json", "utf-8"));
 const targetManifest = JSON.parse(readFileSync("pf2e/system.json", "utf-8"));
 
-// Auto-match packs by document type (e.g., dnd5e.items → pf2e.items)
+// Auto-match packs by document type (e.g., sf2e.items → pf2e.items)
 const remaps = buildCompendiumRemap(sourceManifest, targetManifest);
 
 const resolver = createCrossSystemResolver({
@@ -165,14 +165,14 @@ const resolver = createCrossSystemResolver({
     sourceFolders,                    // from source pack's folders.db.json
     targetFolders,                    // from target pack's folders.db.json
     assetPathReplacements: [
-        { from: "systems/dnd5e", to: "systems/pf2e" },
+        { from: "systems/sf2e", to: "systems/pf2e" },
     ],
-    flagScopeRename: { from: "dnd5e", to: "pf2e" },
+    flagScopeRename: { from: "sf2e", to: "pf2e" },
     uuidRemap,                        // Map<sourcePack, Map<oldId, newId>>
 });
 
 // Apply the resolver as a transform during extraction
-await extractPack("dnd5e/packs/items", "output/cross-system", {
+await extractPack("sf2e/packs/items", "output/cross-system", {
     clean: true,
     transformEntry: (doc, ctx) => resolver.transform(doc, ctx),
 });

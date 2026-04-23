@@ -21,7 +21,11 @@ export function convertUUIDsToNames(
         const packId = docMatch[1];
         const docId = docMatch[3];
         if (!packId || !docId) return match;
-        const packMap = idNameMap.get(packId);
+        let packMap = idNameMap.get(packId);
+        if (!packMap && sessionIdMap) {
+            const sessionName = sessionIdMap.get(docId);
+            if (sessionName) return sessionName;
+        }
         if (!packMap) {
             if (!warnOnly) {
                 console.warn(`Unknown compendium pack: ${packId}`);
