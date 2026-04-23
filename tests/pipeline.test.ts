@@ -122,57 +122,59 @@ describe("cleanHTML", () => {
         expect(result).toContain("garbage");
     });
 
-    it("converts br to newline", () => {
-        const html = "line1<br/>line2";
-        const result = cleanHTML(html);
-        expect(result).toContain("\n");
-    });
-
-    it("converts p tags to newlines", () => {
+    it("preserves HTML structure", () => {
         const html = "<p>para1</p><p>para2</p>";
         const result = cleanHTML(html);
+        expect(result).toContain("<p>");
+        expect(result).toContain("</p>");
         expect(result).toContain("para1");
         expect(result).toContain("para2");
     });
 
-    it("converts strong/b to markdown bold", () => {
+    it("normalizes br and hr to self-closing", () => {
+        const html = "line1<br>line2<hr>end";
+        const result = cleanHTML(html);
+        expect(result).toContain("<br />");
+        expect(result).toContain("<hr />");
+    });
+
+    it("normalizes strong/b tags", () => {
         const html = "<strong>bold</strong><b>also bold</b>";
         const result = cleanHTML(html);
-        expect(result).toContain("**bold**");
-        expect(result).toContain("**also bold**");
+        expect(result).toContain("<strong>bold</strong>");
+        expect(result).toContain("<strong>also bold</strong>");
     });
 
-    it("converts em/i to markdown italic", () => {
-        const html = "<em>italic</em><i>also italic</i>";
+    it("renames pf2-icon to action-glyph", () => {
+        const html = '<span class="pf2-icon">icon</span>';
         const result = cleanHTML(html);
-        expect(result).toContain("*italic*");
-        expect(result).toContain("*also italic*");
+        expect(result).toContain("action-glyph");
+        expect(result).not.toContain("pf2-icon");
     });
 
-    it("converts links to markdown", () => {
-        const html = '<a href="https://example.com">link</a>';
+    it("removes empty paragraphs and divs", () => {
+        const html = "<p>content</p><p>  </p><div></div>";
         const result = cleanHTML(html);
-        expect(result).toContain("[link](https://example.com)");
+        expect(result).toContain("<p>content</p>");
+        expect(result).not.toMatch(/<p> *<\/p>/);
+        expect(result).not.toMatch(/<div> *<\/div>/);
     });
 
-    it("decodes HTML entities", () => {
-        const html = "&lt;tag&gt; &amp; &nbsp; &#65;";
+    it("cleans up whitespace and special characters", () => {
+        const html = "  spaced   out&nbsp;here ";
         const result = cleanHTML(html);
-        expect(result).toContain("<tag>");
-        expect(result).toContain("&");
-        expect(result).toContain("A");
+        expect(result).toBe("spaced out here");
     });
 
-    it("normalizes whitespace", () => {
-        const html = "  spaced   out  ";
+    it("handles paragraph separation with newlines", () => {
+        const html = "<p>para1</p><p>para2</p>";
         const result = cleanHTML(html);
-        expect(result).toBe("spaced out");
+        expect(result).toContain("</p>\n<p>");
     });
 
-    it("collapses multiple newlines", () => {
-        const html = "<p>a</p><p>b</p><p>c</p>";
-        const result = cleanHTML(html);
-        expect(result).not.toMatch(/\n{3,}/);
+    it("returns empty string for empty input", () => {
+        expect(cleanHTML("")).toBe("");
+        expect(cleanHTML(null as any)).toBe("");
     });
 });
 
@@ -185,7 +187,7 @@ describe("createCleanDescriptionHTMLPlugin", () => {
             },
         });
         await plugin.transform(doc, emptyContext);
-        expect((doc.system as any).description.value).toBe("hello");
+        expect((doc.system as any).description.value).toBe("<p>hello</p>");
     });
 
     it("cleans description.chat", async () => {
@@ -196,7 +198,7 @@ describe("createCleanDescriptionHTMLPlugin", () => {
             },
         });
         await plugin.transform(doc, emptyContext);
-        expect((doc.system as any).description.chat).toBe("**chat**");
+        expect((doc.system as any).description.chat).toBe("<strong>chat</strong>");
     });
 
     it("cleans description.unidentified", async () => {
@@ -207,7 +209,7 @@ describe("createCleanDescriptionHTMLPlugin", () => {
             },
         });
         await plugin.transform(doc, emptyContext);
-        expect((doc.system as any).description.unidentified).toBe("*secret*");
+        expect((doc.system as any).description.unidentified).toBe("<em>secret</em>");
     });
 
     it("does nothing when system is missing", async () => {

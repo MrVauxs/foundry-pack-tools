@@ -12,57 +12,60 @@ const DEFAULT_CLASS_RENAMES: Record<string, string> = {
 };
 
 export function cleanHTML(html: string, _docName?: string): string {
-    const dom = new JSDOM(html);
-    const document = dom.window.document;
-
-    const spans = document.querySelectorAll("span");
-    for (const span of spans) {
-        const el = span as HTMLElement;
-        if (el.dataset.aonCopypasta) {
-            const replacement = document.createElement("span");
-            replacement.textContent = el.textContent || "";
-            el.replaceWith(replacement);
-        }
+    if (!html) {
+        return "";
     }
 
-    let body = document.body.innerHTML;
+    const dom = new JSDOM(html);
+    const document = dom.window.document;
+    const container = document.body;
 
-    body = body.replace(/<br\s*\/?>/gi, "\n");
-    body = body.replace(/<p[^>]*>/gi, "\n");
-    body = body.replace(/<\/p>/gi, "\n");
-    body = body.replace(/<div[^>]*>/gi, "");
-    body = body.replace(/<\/div>/gi, "");
-    body = body.replace(/<li[^>]*>/gi, "  - ");
-    body = body.replace(/<\/li>/gi, "\n");
-    body = body.replace(/<ul[^>]*>/gi, "");
-    body = body.replace(/<\/ul>/gi, "\n");
-    body = body.replace(/<ol[^>]*>/gi, "");
-    body = body.replace(/<\/ol>/gi, "\n");
-    body = body.replace(/<h[1-6][^>]*>/gi, "\n## ");
-    body = body.replace(/<\/h[1-6]>/gi, "\n");
-    body = body.replace(/<strong[^>]*>/gi, "**");
-    body = body.replace(/<\/strong>/gi, "**");
-    body = body.replace(/<b[^>]*>/gi, "**");
-    body = body.replace(/<\/b>/gi, "**");
-    body = body.replace(/<em[^>]*>/gi, "*");
-    body = body.replace(/<\/em>/gi, "*");
-    body = body.replace(/<i[^>]*>/gi, "*");
-    body = body.replace(/<\/i>/gi, "*");
-    body = body.replace(/<a[^>]*href="([^"]*)"[^>]*>/gi, "[link]($1)");
-    body = body.replace(/<\/a>/gi, "");
-    body = body.replace(/<[^>]+>/g, "");
-    body = body.replace(/&nbsp;/g, " ");
-    body = body.replace(/&amp;/g, "&");
-    body = body.replace(/&lt;/g, "<");
-    body = body.replace(/&gt;/g, ">");
-    body = body.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+    // Strip out span tags from AoN copypasta
+    const aonSpans = container.querySelectorAll("span[data-aon-copypasta]");
+    for (const span of aonSpans) {
+        const el = span as HTMLElement;
+        const replacement = document.createElement("span");
+        replacement.textContent = el.textContent || "";
+        el.replaceWith(replacement);
+    }
 
-    body = body.replace(/\n{3,}/g, "\n\n");
-    body = body.replace(/[ \t]+/g, " ");
-    body = body.replace(/ ?\n ?/g, "\n");
-    body = body.trim();
+    // Also strip specific AoN selectors
+    const selectors = ["span#ctl00_MainContent_DetailedOutput", "span.fontstyle0"];
+    for (const selector of selectors) {
+        container.querySelectorAll(selector).forEach((span) => {
+            span.replaceWith(span.innerHTML);
+        });
+    }
 
-    return body;
+    let result = container.innerHTML;
+
+    // Prefer self-closing tags for br and hr
+    result = result.replace(/<([hb]r)>/g, "<$1 />");
+
+    // Clean up whitespace around paragraph tags
+    result = result.replace(/<\/p> ?<p>/g, "</p>\n<p>");
+    result = result.replace(/<p>[ \r\n]+/g, "<p>");
+    result = result.replace(/[ \r\n]+<\/p>/g, "</p>");
+
+    // Normalize bold tags
+    result = result.replace(/<(?:b|strong)>\s*/g, "<strong>");
+    result = result.replace(/\s*<\/(?:b|strong)>/g, "</strong>");
+    result = result.replace(/(<\/strong>)(\w)/g, "$1 $2");
+
+    // Rename pf2e icon class
+    result = result.replace(/\bpf2-icon\b/g, "action-glyph");
+
+    // Remove empty paragraphs and divs
+    result = result.replace(/<p> *<\/p>/g, "");
+    result = result.replace(/<div> *<\/div>/g, "");
+
+    // Clean up whitespace and special characters
+    result = result.replace(/&nbsp;/g, " ");
+    result = result.replace(/\u2011/g, "-");
+    result = result.replace(/\s*\u2014\s*/g, "\u2014"); // em dash
+    result = result.replace(/ {2,}/g, " ");
+
+    return result.trim().replace(/^<hr \/>/, "").trim();
 }
 
 export function createCleanDescriptionHTMLPlugin(options: CleanHTMLOptions = {}): TransformPlugin {
