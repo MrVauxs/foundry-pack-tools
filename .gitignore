@@ -1,3 +1,12 @@
+# non-official fixtures
+fixtures/
+!fixtures/adventures
+!fixtures/actors
+!fixtures/items
+!fixtures/journals
+!fixtures/tables
+!fixtures/scenes
+
 # dependencies (bun install)
 node_modules
 
