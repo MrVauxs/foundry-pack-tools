@@ -5,6 +5,13 @@ export default defineConfig({
         globals: true,
         include: ["**/*.test.ts"],
         testTimeout: 60000,
-        reporters: ["verbose"],
+        poolOptions: {
+            threads: {
+                singleThread: true,
+            },
+        },
+        sequence: {
+            concurrent: false,
+        },
     },
 });
