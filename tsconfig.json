@@ -24,8 +24,10 @@
 
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+
+    "typeRoots": ["./types", "./node_modules/@types"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts"],
 }
