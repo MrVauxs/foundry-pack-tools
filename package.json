@@ -1,11 +1,42 @@
 {
-  "name": "foundryvtt-cli-plus",
-  "module": "index.ts",
+  "name": "@vauxs-fvtt/foundry-pack-tools",
+  "version": "0.1.0",
+  "description": "Document processing utilities for Foundry VTT compendium pack workflows",
   "type": "module",
-  "devDependencies": {
-    "@types/bun": "latest"
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cross-system": {
+      "types": "./dist/cross-system.d.ts",
+      "import": "./dist/cross-system.js"
+    }
   },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@foundryvtt/foundryvtt-cli": "^1.0.0",
+    "jsdom": "^25.0.0",
+    "remeda": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vauxs-fvtt/foundry-pack-tools"
+  },
+  "license": "MIT"
 }
