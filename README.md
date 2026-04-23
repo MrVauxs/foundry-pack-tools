@@ -1,4 +1,4 @@
-# foundryvtt-cli-plus
+# foundry-pack-tools
 
 To install dependencies:
 
