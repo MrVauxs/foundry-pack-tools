@@ -3,7 +3,6 @@ import type { PackEntry, TransformContext, TransformPlugin } from "../../types.j
 export const LINK_PATTERNS = [
     /@UUID\[(Compendium\.[^\]]+)\]/g,
     /@Compendium\[([^\]]+)\]/g,
-    /\[\[\/(show|r\/|skill|check|save|damage|heal)[^\]]*\]\]/g,
     /@Actor\[([^\]]+)\]/g,
     /@Item\[([^\]]+)\]/g,
     /@Scene\[([^\]]+)\]/g,
